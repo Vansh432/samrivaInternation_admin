@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -118,7 +118,7 @@ export default function AllInvestments() {
                 <th className="px-4 py-3">Rate</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Submitted</th>
-                <th className="px-4 py-3"></th>
+                <th className="px-4 py-3">Proof</th>
               </tr>
             </thead>
             <tbody>
@@ -147,16 +147,17 @@ export default function AllInvestments() {
                       <Badge tone={STATUS_TONE[inv.status] ?? "neutral"}>{inv.status.replace("_", " ")}</Badge>
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-500">{new Date(inv.createdAt).toLocaleDateString()}</td>
-                    <td className="px-4 py-3 text-right">
-                      {inv.paymentProofUrl && (
-                        <a
-                          href={inv.paymentProofUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald hover:underline"
-                        >
-                          Proof <ExternalLink size={12} />
+                    <td className="px-4 py-3">
+                      {inv.paymentProofUrl ? (
+                        <a href={inv.paymentProofUrl} target="_blank" rel="noreferrer">
+                          <img
+                            src={inv.paymentProofUrl}
+                            alt="Payment proof"
+                            className="h-10 w-10 rounded-md border border-slate-200 object-cover transition hover:opacity-80"
+                          />
                         </a>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
                       )}
                     </td>
                   </tr>

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Check, X, Landmark, ExternalLink } from "lucide-react";
+import { Check, X, Landmark } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -136,18 +136,21 @@ export default function InvestmentApprovals() {
                   <Detail label="Amount Paid" value={fmtInr(inv.amountPaid)} />
                   <Detail label="Payment Mode" value={inv.paymentMode?.toUpperCase()} />
                   <Detail label="Transaction ID" value={<span className="break-all font-mono text-xs">{inv.transactionId}</span>} />
-                  <Detail
-                    label="Payment Proof"
-                    value={
-                      inv.paymentProofUrl ? (
-                        <a href={inv.paymentProofUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald hover:underline">
-                          View screenshot <ExternalLink size={12} />
-                        </a>
-                      ) : (
-                        "— (cash)"
-                      )
-                    }
-                  />
+                </div>
+
+                <div className="mt-3">
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Payment Proof</p>
+                  {inv.paymentProofUrl ? (
+                    <a href={inv.paymentProofUrl} target="_blank" rel="noreferrer">
+                      <img
+                        src={inv.paymentProofUrl}
+                        alt="Payment proof screenshot"
+                        className="h-28 w-28 rounded-lg border border-slate-200 object-cover transition hover:opacity-80"
+                      />
+                    </a>
+                  ) : (
+                    <p className="text-sm text-slate-400">No screenshot (cash payment)</p>
+                  )}
                 </div>
 
                 {isRejectingHere && (

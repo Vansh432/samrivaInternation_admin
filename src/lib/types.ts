@@ -70,6 +70,37 @@ export type RateSlab = {
 
 export type InvestmentStatus = "pending_verification" | "active" | "rejected" | "matured" | "cancelled";
 
+export type TeamLevelSummary = { level: number; memberCount: number; activeInvestorCount: number; activeUnits: number };
+
+export type TeamSummary = {
+  totalDownline: number;
+  totalActiveUnits: number;
+  directCount: number;
+  levels: TeamLevelSummary[];
+};
+
+export type TeamMember = {
+  id: string;
+  mobile: string;
+  fullName: string | null;
+  role: AdminRole;
+  status: UserStatus;
+  kycStatus: KycStatus;
+  joinedAt: string;
+  activeUnits: number;
+};
+
+export type TeamNode = {
+  id: string;
+  name: string;
+  mobile: string;
+  role: AdminRole;
+  activeUnits: number;
+  isActive: boolean;
+  level: number;
+  children: TeamNode[];
+};
+
 export type AdminInvestment = {
   id: string;
   user: { id: string; mobile: string; fullName?: string | null } | string;

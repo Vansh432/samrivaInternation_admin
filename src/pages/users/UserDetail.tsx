@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Network } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { useAuth } from "@/lib/auth";
@@ -147,6 +147,21 @@ export default function UserDetail() {
         </Card>
 
         <div className="flex flex-col gap-4">
+          <Card>
+            <Link
+              to={`/team?userId=${user.id}`}
+              className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 hover:bg-slate-50"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald/10 text-emerald">
+                <Network size={17} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-slate-800">View Team & Genealogy</p>
+                <p className="text-xs text-slate-500">Sponsorship tree, level breakdown, active units</p>
+              </div>
+            </Link>
+          </Card>
+
           <Card>
             <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">Account Status</p>
             <select
