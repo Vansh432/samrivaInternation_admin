@@ -13,6 +13,7 @@ import {
   FileBarChart,
   FileText,
   Settings,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,7 +54,13 @@ const NAV_GROUPS: NavGroup[] = [
   { title: "Bonus Center", items: [{ label: "Bonus Programs", to: "/bonuses", icon: Gift }] },
   { title: "Reports & Documents", items: [{ label: "Reports", to: "/reports", icon: FileBarChart }] },
   { title: "Content", items: [{ label: "CMS", to: "/cms", icon: FileText }] },
-  { title: "System", items: [{ label: "Settings", to: "/settings", icon: Settings }] },
+  {
+    title: "System",
+    items: [
+      { label: "Activity Logs", to: "/activity-logs", icon: ScrollText },
+      { label: "Settings", to: "/settings", icon: Settings },
+    ],
+  },
 ];
 
 export function Sidebar() {

@@ -101,6 +101,117 @@ export type TeamNode = {
   children: TeamNode[];
 };
 
+export type FastStartBonusSlab = {
+  id: string;
+  unitsThreshold: number;
+  bonusAmount: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type FastStartBonusAward = {
+  id: string;
+  user: { id: string; mobile: string; fullName?: string | null } | string;
+  amount: number;
+  description?: string;
+  createdAt: string;
+};
+
+export type ActivityLogLevel = "info" | "warn" | "error";
+
+export type ActivityLog = {
+  id: string;
+  type: string;
+  action: string;
+  level: ActivityLogLevel;
+  message: string;
+  meta?: Record<string, unknown>;
+  user?: { id: string; mobile: string; fullName?: string | null } | string | null;
+  actor?: { id: string; mobile: string; fullName?: string | null } | string | null;
+  createdAt: string;
+};
+
+export type RetentionBonusSlab = {
+  id: string;
+  unitsThreshold: number;
+  bonusAmount: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type LeadershipOverrideSlab = {
+  id: string;
+  generation: number;
+  percent: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type WalletType = "main" | "reward" | "bonus" | "commission";
+export type WalletTxnType = "credit" | "debit";
+
+export type WalletTransactionAdmin = {
+  id: string;
+  user: { id: string; mobile: string; fullName?: string | null } | string;
+  walletType: WalletType;
+  type: WalletTxnType;
+  amount: number;
+  balanceAfter: number;
+  source: string;
+  description?: string;
+  createdAt: string;
+};
+
+export type Rank =
+  | "investor"
+  | "associate"
+  | "senior_associate"
+  | "manager"
+  | "senior_manager"
+  | "director"
+  | "regional_director"
+  | "national_director";
+
+export type RankSlab = {
+  id: string;
+  rank: Rank;
+  selfUnitsMin: number;
+  directTeamSizeMin: number;
+  requiredDirectRank: Rank;
+  teamBusinessUnitMin: number;
+  incomePercent: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type RankAchievementSlab = {
+  id: string;
+  rank: Rank;
+  amount: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type RankBenefitSlab = {
+  id: string;
+  rank: Rank;
+  mobileBonus: number;
+  groomingBonus: number;
+  conveyanceBonus: number;
+  lifeStyleBonus: number;
+  businessTourBonus: number;
+  familyTripBonus: number;
+  qualifyingDirectUnitsPerMonth: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type AdminInvestment = {
   id: string;
   user: { id: string; mobile: string; fullName?: string | null } | string;

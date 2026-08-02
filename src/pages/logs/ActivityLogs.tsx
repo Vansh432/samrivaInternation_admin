@@ -7,19 +7,27 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PageLoader } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { Paginated, WalletTransactionAdmin } from "@/lib/types";
+import type { ActivityLog, Paginated } from "@/lib/types";
 
-const WALLET_TYPES = ["main", "reward", "bonus", "commission"];
+const TYPES = ["auth", "user", "admin", "investment", "wallet", "bonus", "cron"];
+const LEVELS = ["info", "warn", "error"] as const;
 
-const formatINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+const levelTone = (level: string): "success" | "warning" | "danger" | "neutral" =>
+  level === "error" ? "danger" : level === "warn" ? "warning" : "neutral";
 
-export default function Wallets() {
+const who = (v: ActivityLog["user"]) => {
+  if (!v) return "—";
+  if (typeof v === "string") return v;
+  return v.fullName || v.mobile;
+};
+
+export default function ActivityLogs() {
   const toast = useToast();
-  const [data, setData] = useState<Paginated<WalletTransactionAdmin> | null>(null);
+  const [data, setData] = useState<Paginated<ActivityLog> | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [walletType, setWalletType] = useState("");
   const [type, setType] = useState("");
+  const [level, setLevel] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
@@ -27,11 +35,11 @@ export default function Wallets() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/admin/wallets/transactions", {
+      const res = await api.get("/admin/logs", {
         params: {
           search: search || undefined,
-          walletType: walletType || undefined,
           type: type || undefined,
+          level: level || undefined,
           dateFrom: dateFrom || undefined,
           dateTo: dateTo || undefined,
           page,
@@ -40,7 +48,7 @@ export default function Wallets() {
       });
       setData(res.data.data);
     } catch (e: any) {
-      toast.show(e?.response?.data?.message || "Failed to load wallet transactions", "error");
+      toast.show(e?.response?.data?.message || "Failed to load activity logs", "error");
     } finally {
       setLoading(false);
     }
@@ -49,7 +57,7 @@ export default function Wallets() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [walletType, type, dateFrom, dateTo, page]);
+  }, [type, level, dateFrom, dateTo, page]);
 
   const onSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,8 +68,8 @@ export default function Wallets() {
   return (
     <div>
       <PageHeader
-        title="Wallets & Transactions"
-        description="Every credit and debit across Main, Reward, Bonus, and Commission wallets, platform-wide."
+        title="Activity Logs"
+        description="Every logged mutation and auth event across the platform — logins, KYC decisions, admin config changes, credits/debits, and more."
       />
 
       <Card className="mb-4">
@@ -71,25 +79,10 @@ export default function Wallets() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by user mobile or name..."
+              placeholder="Search by message, action, or user/actor..."
               className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald focus:ring-2 focus:ring-emerald/20"
             />
           </div>
-          <select
-            value={walletType}
-            onChange={(e) => {
-              setPage(1);
-              setWalletType(e.target.value);
-            }}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald"
-          >
-            <option value="">All wallets</option>
-            {WALLET_TYPES.map((w) => (
-              <option key={w} value={w}>
-                {w.charAt(0).toUpperCase() + w.slice(1)}
-              </option>
-            ))}
-          </select>
           <select
             value={type}
             onChange={(e) => {
@@ -98,9 +91,27 @@ export default function Wallets() {
             }}
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald"
           >
-            <option value="">Credit & Debit</option>
-            <option value="credit">Credit only</option>
-            <option value="debit">Debit only</option>
+            <option value="">All types</option>
+            {TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </option>
+            ))}
+          </select>
+          <select
+            value={level}
+            onChange={(e) => {
+              setPage(1);
+              setLevel(e.target.value);
+            }}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald"
+          >
+            <option value="">All levels</option>
+            {LEVELS.map((l) => (
+              <option key={l} value={l}>
+                {l.charAt(0).toUpperCase() + l.slice(1)}
+              </option>
+            ))}
           </select>
           <input
             type="date"
@@ -126,41 +137,33 @@ export default function Wallets() {
       {loading ? (
         <PageLoader />
       ) : !data || data.items.length === 0 ? (
-        <EmptyState title="No transactions match these filters" description="Try widening the date range or clearing a filter." />
+        <EmptyState title="No log entries match these filters" description="Try widening the date range or clearing a filter." />
       ) : (
         <Card className="overflow-x-auto p-0">
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-4 py-3">User</th>
-                <th className="px-4 py-3">Wallet</th>
                 <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Balance After</th>
-                <th className="px-4 py-3">Description</th>
+                <th className="px-4 py-3">Action</th>
+                <th className="px-4 py-3">Level</th>
+                <th className="px-4 py-3">Message</th>
+                <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">Actor</th>
                 <th className="px-4 py-3">Date</th>
               </tr>
             </thead>
             <tbody>
-              {data.items.map((t) => (
-                <tr key={t.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+              {data.items.map((l) => (
+                <tr key={l.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                  <td className="px-4 py-3 capitalize text-slate-600">{l.type}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-600">{l.action}</td>
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-slate-800">
-                      {typeof t.user === "string" ? t.user : t.user.fullName || t.user.mobile}
-                    </p>
-                    {typeof t.user !== "string" && <p className="text-xs text-slate-500">{t.user.mobile}</p>}
+                    <Badge tone={levelTone(l.level)}>{l.level}</Badge>
                   </td>
-                  <td className="px-4 py-3 capitalize text-slate-600">{t.walletType}</td>
-                  <td className="px-4 py-3">
-                    <Badge tone={t.type === "credit" ? "success" : "danger"}>{t.type}</Badge>
-                  </td>
-                  <td className={`px-4 py-3 font-bold ${t.type === "credit" ? "text-emerald" : "text-red-600"}`}>
-                    {t.type === "credit" ? "+" : "-"}
-                    {formatINR(t.amount)}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{formatINR(t.balanceAfter)}</td>
-                  <td className="px-4 py-3 text-slate-500">{t.description || t.source}</td>
-                  <td className="px-4 py-3 text-slate-500">{new Date(t.createdAt).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-slate-700">{l.message}</td>
+                  <td className="px-4 py-3 text-slate-600">{who(l.user)}</td>
+                  <td className="px-4 py-3 text-slate-600">{who(l.actor)}</td>
+                  <td className="px-4 py-3 text-slate-500">{new Date(l.createdAt).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -169,7 +172,7 @@ export default function Wallets() {
           {data.totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
               <p className="text-xs text-slate-500">
-                Page {data.page} of {data.totalPages} · {data.total} transactions
+                Page {data.page} of {data.totalPages} · {data.total} entries
               </p>
               <div className="flex gap-2">
                 <button

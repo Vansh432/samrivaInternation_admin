@@ -17,6 +17,7 @@ import Ranks from "@/pages/team/Ranks";
 import Bonuses from "@/pages/bonuses/Bonuses";
 import Reports from "@/pages/reports/Reports";
 import Cms from "@/pages/cms/Cms";
+import ActivityLogs from "@/pages/logs/ActivityLogs";
 import Settings from "@/pages/settings/Settings";
 
 export default function App() {
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/bonuses" element={<Bonuses />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/cms" element={<Cms />} />
+        <Route path="/activity-logs" element={<ActivityLogs />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
 
