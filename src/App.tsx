@@ -11,6 +11,7 @@ import Investments from "@/pages/investments/Investments";
 import InvestmentApprovals from "@/pages/investments/InvestmentApprovals";
 import AllInvestments from "@/pages/investments/AllInvestments";
 import Wallets from "@/pages/wallets/Wallets";
+import TransferRequests from "@/pages/wallets/TransferRequests";
 import Withdrawals from "@/pages/withdrawals/Withdrawals";
 import Team from "@/pages/team/Team";
 import Ranks from "@/pages/team/Ranks";
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/investments/all" element={<AllInvestments />} />
         <Route path="/investment-approvals" element={<InvestmentApprovals />} />
         <Route path="/wallets" element={<Wallets />} />
+        <Route path="/wallet-transfer-requests" element={<TransferRequests />} />
         <Route path="/withdrawals" element={<Withdrawals />} />
         <Route path="/team" element={<Team />} />
         <Route path="/ranks" element={<Ranks />} />

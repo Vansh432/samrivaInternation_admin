@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Zap, Repeat, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Zap, Repeat, Users, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -14,6 +14,7 @@ import type {
   FastStartBonusAward,
   RetentionBonusSlab,
   LeadershipOverrideSlab,
+  DirectAcquisitionBonusConfig,
   Paginated,
 } from "@/lib/types";
 
@@ -21,10 +22,6 @@ const OTHER_PROGRAMS = [
   {
     name: "Rank Advancement Bonus",
     detail: "One-time cash reward on hitting each new rank (see Ranks & Leadership page for the full table).",
-  },
-  {
-    name: "Direct Acquisition Bonus",
-    detail: "3% (Compounding Plan) / 2% (Monthly Income Plan) on a personally-introduced investor's investment, uncapped.",
   },
   {
     name: "Leadership Pool",
@@ -70,6 +67,12 @@ export default function Bonuses() {
   const [overrideForm, setOverrideForm] = useState(emptyOverrideForm);
   const [overrideTouched, setOverrideTouched] = useState(false);
   const [overrideSaving, setOverrideSaving] = useState(false);
+
+  const [directConfig, setDirectConfig] = useState<DirectAcquisitionBonusConfig | null>(null);
+  const [directConfigLoading, setDirectConfigLoading] = useState(true);
+  const [directForm, setDirectForm] = useState({ compoundingPercent: "", monthlyIncomePercent: "", isActive: true });
+  const [directTouched, setDirectTouched] = useState(false);
+  const [directSaving, setDirectSaving] = useState(false);
 
   const loadSlabs = async () => {
     setSlabsLoading(true);
@@ -131,10 +134,29 @@ export default function Bonuses() {
     }
   };
 
+  const loadDirectConfig = async () => {
+    setDirectConfigLoading(true);
+    try {
+      const res = await api.get("/bonuses/direct-acquisition");
+      const config: DirectAcquisitionBonusConfig = res.data.data.config;
+      setDirectConfig(config);
+      setDirectForm({
+        compoundingPercent: String(config.compoundingPercent),
+        monthlyIncomePercent: String(config.monthlyIncomePercent),
+        isActive: config.isActive,
+      });
+    } catch (e: any) {
+      toast.show(e?.response?.data?.message || "Failed to load Direct Acquisition Bonus config", "error");
+    } finally {
+      setDirectConfigLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadSlabs();
     loadRetentionSlabs();
     loadOverrideSlabs();
+    loadDirectConfig();
   }, []);
 
   useEffect(() => {
@@ -313,6 +335,35 @@ export default function Bonuses() {
       loadOverrideSlabs();
     } catch (e: any) {
       toast.show(e?.response?.data?.message || "Could not delete slab", "error");
+    }
+  };
+
+  const directCompoundingNum = Number(directForm.compoundingPercent);
+  const directMonthlyNum = Number(directForm.monthlyIncomePercent);
+  const directCompoundingValid = directForm.compoundingPercent.trim() !== "" && directCompoundingNum >= 0 && directCompoundingNum <= 100;
+  const directMonthlyValid = directForm.monthlyIncomePercent.trim() !== "" && directMonthlyNum >= 0 && directMonthlyNum <= 100;
+  const directFormValid = directCompoundingValid && directMonthlyValid;
+
+  const saveDirectConfig = async () => {
+    setDirectTouched(true);
+    if (!directFormValid) {
+      toast.show("Please fix the highlighted fields", "error");
+      return;
+    }
+    setDirectSaving(true);
+    try {
+      const payload = {
+        compoundingPercent: directCompoundingNum,
+        monthlyIncomePercent: directMonthlyNum,
+        isActive: directForm.isActive,
+      };
+      const res = await api.patch("/bonuses/direct-acquisition", payload);
+      setDirectConfig(res.data.data.config);
+      toast.show("Direct Acquisition Bonus config updated", "success");
+    } catch (e: any) {
+      toast.show(e?.response?.data?.message || "Could not save Direct Acquisition Bonus config", "error");
+    } finally {
+      setDirectSaving(false);
     }
   };
 
@@ -592,9 +643,10 @@ export default function Bonuses() {
             <div>
               <p className="font-bold text-slate-800">Leadership Override</p>
               <p className="text-sm text-slate-500">
-                Paid on investment approval — a sponsor's upline (up to 3 generations) each earn this % of the
-                investment amount, only when that generation currently outranks the sponsor. Credited to the
-                Bonus wallet; visible in Wallets → Transactions.
+                Settled monthly (1st of the month, for the calendar month that just closed) — every user earns
+                this % of their own Gen 1/2/3 upline's Commission wallet total for that month, only counted for
+                generations that currently outrank them. Credited to the Bonus wallet; visible in Wallets →
+                Transactions.
               </p>
             </div>
           </div>
@@ -655,6 +707,73 @@ export default function Bonuses() {
               </tbody>
             </table>
           </div>
+        )}
+      </Card>
+
+      <Card className="mb-6">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+            <UserPlus size={18} />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800">Direct Acquisition Bonus</p>
+            <p className="text-sm text-slate-500">
+              Paid on investment approval — a sponsor earns this % of their direct (level-1) referral's investment,
+              rate depending on the referred plan type. Uncapped, not rank-gated. Credited to the Commission wallet,
+              in addition to Rank Income.
+            </p>
+          </div>
+        </div>
+
+        {directConfigLoading ? (
+          <PageLoader />
+        ) : (
+          <div className="flex flex-wrap items-end gap-4">
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">
+                Compounding Plan %
+              </label>
+              <input
+                value={directForm.compoundingPercent}
+                onChange={(e) => setDirectForm((f) => ({ ...f, compoundingPercent: e.target.value.replace(/[^0-9.]/g, "") }))}
+                placeholder="e.g. 3"
+                className={`w-32 rounded-lg border px-3 py-2 text-sm outline-none focus:border-emerald ${
+                  directTouched && !directCompoundingValid ? "border-red-400" : "border-slate-300"
+                }`}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">
+                Monthly Income Plan %
+              </label>
+              <input
+                value={directForm.monthlyIncomePercent}
+                onChange={(e) => setDirectForm((f) => ({ ...f, monthlyIncomePercent: e.target.value.replace(/[^0-9.]/g, "") }))}
+                placeholder="e.g. 2"
+                className={`w-32 rounded-lg border px-3 py-2 text-sm outline-none focus:border-emerald ${
+                  directTouched && !directMonthlyValid ? "border-red-400" : "border-slate-300"
+                }`}
+              />
+            </div>
+            <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={directForm.isActive}
+                onChange={(e) => setDirectForm((f) => ({ ...f, isActive: e.target.checked }))}
+                className="h-4 w-4 rounded border-slate-300 text-emerald focus:ring-emerald"
+              />
+              Active
+            </label>
+            <Button onClick={saveDirectConfig} disabled={directSaving}>
+              {directSaving ? "Saving…" : "Save"}
+            </Button>
+            {directConfig && (
+              <Badge tone={directConfig.isActive ? "success" : "neutral"}>{directConfig.isActive ? "active" : "inactive"}</Badge>
+            )}
+          </div>
+        )}
+        {directTouched && (!directCompoundingValid || !directMonthlyValid) && (
+          <p className="mt-2 text-xs font-semibold text-red-500">Enter valid percentages between 0 and 100</p>
         )}
       </Card>
 

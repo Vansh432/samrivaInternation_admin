@@ -150,8 +150,30 @@ export type LeadershipOverrideSlab = {
   updatedAt?: string;
 };
 
+export type DirectAcquisitionBonusConfig = {
+  compoundingPercent: number;
+  monthlyIncomePercent: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type WalletType = "main" | "reward" | "bonus" | "commission";
 export type WalletTxnType = "credit" | "debit";
+export type WalletTxnStatus = "pending" | "settled";
+
+export type CommissionSettlementPeriod = {
+  order: number;
+  startDay: number;
+  endDay: number | null;
+  closingDay: number;
+};
+
+export type CommissionSettlementConfig = {
+  periods: CommissionSettlementPeriod[];
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 export type WalletTransactionAdmin = {
   id: string;
@@ -159,9 +181,36 @@ export type WalletTransactionAdmin = {
   walletType: WalletType;
   type: WalletTxnType;
   amount: number;
-  balanceAfter: number;
+  balanceAfter?: number;
+  status?: WalletTxnStatus;
   source: string;
   description?: string;
+  createdAt: string;
+};
+
+export type TdsConfig = {
+  mode: "fixed" | "percentage";
+  value: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type TransferableWalletType = "bonus" | "reward" | "commission";
+export type TransferRequestStatus = "pending" | "approved" | "rejected";
+
+export type WalletTransferRequestAdmin = {
+  id: string;
+  user: { id: string; mobile: string; fullName?: string | null } | string;
+  fromWalletType: TransferableWalletType;
+  amount: number;
+  tdsMode: "fixed" | "percentage";
+  tdsValue: number;
+  tdsAmount: number;
+  netAmount: number;
+  status: TransferRequestStatus;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
   createdAt: string;
 };
 

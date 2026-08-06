@@ -6,6 +6,7 @@ import {
   Landmark,
   ClipboardCheck,
   Wallet,
+  ArrowRightLeft,
   ArrowDownToLine,
   Network,
   Award,
@@ -41,6 +42,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "Finance",
     items: [
       { label: "Wallets & Transactions", to: "/wallets", icon: Wallet },
+      { label: "Transfer Requests", to: "/wallet-transfer-requests", icon: ArrowRightLeft },
       { label: "Withdrawals", to: "/withdrawals", icon: ArrowDownToLine },
     ],
   },
