@@ -33,6 +33,7 @@ type RankSlabForm = {
   requiredDirectRank: Rank;
   teamBusinessUnitMin: string;
   incomePercent: string;
+  retentionLevelsUnlocked: string;
   isActive: boolean;
 };
 
@@ -43,6 +44,7 @@ const emptyForm: RankSlabForm = {
   requiredDirectRank: RANKS[0],
   teamBusinessUnitMin: "",
   incomePercent: "",
+  retentionLevelsUnlocked: "",
   isActive: true,
 };
 
@@ -187,6 +189,7 @@ export default function Ranks() {
       requiredDirectRank: slab.requiredDirectRank,
       teamBusinessUnitMin: String(slab.teamBusinessUnitMin),
       incomePercent: String(slab.incomePercent),
+      retentionLevelsUnlocked: String(slab.retentionLevelsUnlocked),
       isActive: slab.isActive,
     });
     setTouched(false);
@@ -197,11 +200,13 @@ export default function Ranks() {
   const teamSizeNum = Number(form.directTeamSizeMin);
   const businessUnitNum = form.teamBusinessUnitMin.trim() === "" ? 0 : Number(form.teamBusinessUnitMin);
   const incomePercentNum = Number(form.incomePercent);
+  const retentionLevelsNum = Number(form.retentionLevelsUnlocked);
   const selfUnitsValid = Number.isInteger(selfUnitsNum) && selfUnitsNum >= 0;
   const teamSizeValid = Number.isInteger(teamSizeNum) && teamSizeNum >= 0;
   const businessUnitValid = Number.isInteger(businessUnitNum) && businessUnitNum >= 0;
   const incomePercentValid = form.incomePercent.trim() !== "" && incomePercentNum >= 0 && incomePercentNum <= 100;
-  const formValid = selfUnitsValid && teamSizeValid && businessUnitValid && incomePercentValid;
+  const retentionLevelsValid = form.retentionLevelsUnlocked.trim() !== "" && Number.isInteger(retentionLevelsNum) && retentionLevelsNum >= 0;
+  const formValid = selfUnitsValid && teamSizeValid && businessUnitValid && incomePercentValid && retentionLevelsValid;
 
   const save = async () => {
     setTouched(true);
@@ -218,6 +223,7 @@ export default function Ranks() {
         requiredDirectRank: form.requiredDirectRank,
         teamBusinessUnitMin: businessUnitNum,
         incomePercent: incomePercentNum,
+        retentionLevelsUnlocked: retentionLevelsNum,
         isActive: form.isActive,
       };
       if (editingId) {
@@ -453,6 +459,7 @@ export default function Ranks() {
                 <th className="px-5 py-3">Required Direct Rank</th>
                 <th className="px-5 py-3">Team Business Units</th>
                 <th className="px-5 py-3">Rank Income %</th>
+                <th className="px-5 py-3">Retention Levels</th>
                 <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
@@ -466,6 +473,9 @@ export default function Ranks() {
                   <td className="px-5 py-3 text-slate-600">{label(s.requiredDirectRank)}+</td>
                   <td className="px-5 py-3 text-slate-600">{s.teamBusinessUnitMin > 0 ? s.teamBusinessUnitMin : "None"}</td>
                   <td className="px-5 py-3 font-bold text-emerald">{s.incomePercent}%</td>
+                  <td className="px-5 py-3 text-slate-600">
+                    {s.retentionLevelsUnlocked > 0 ? `Levels 1–${s.retentionLevelsUnlocked}` : "None"}
+                  </td>
                   <td className="px-5 py-3">
                     <Badge tone={s.isActive ? "success" : "neutral"}>{s.isActive ? "active" : "inactive"}</Badge>
                   </td>
@@ -580,6 +590,22 @@ export default function Ranks() {
             {touched && !incomePercentValid && <p className="mt-1 text-xs font-semibold text-red-500">Enter a valid percent (0–100)</p>}
             <p className="mt-1 text-xs text-slate-400">
               This rank's rate in the 7-level income table — earned on investments from the matching level of anyone's downline.
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">Retention Bonus Levels *</label>
+            <input
+              value={form.retentionLevelsUnlocked}
+              onChange={(e) => setForm((f) => ({ ...f, retentionLevelsUnlocked: e.target.value.replace(/\D/g, "") }))}
+              placeholder="e.g. 2"
+              className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-emerald ${
+                touched && !retentionLevelsValid ? "border-red-400" : "border-slate-300"
+              }`}
+            />
+            {touched && !retentionLevelsValid && <p className="mt-1 text-xs font-semibold text-red-500">Enter a valid number (0 = doesn't earn Retention Bonus)</p>}
+            <p className="mt-1 text-xs text-slate-400">
+              How many team levels deep this rank's Retention Bonus counts renewal units from (cumulative — e.g. 3 = levels 1, 2 and 3 all count).
             </p>
           </div>
 

@@ -513,9 +513,10 @@ export default function Bonuses() {
             <div>
               <p className="font-bold text-slate-800">Retention Bonus</p>
               <p className="text-sm text-slate-500">
-                Lifetime cumulative — a sponsor's direct-referred team's renewal units (matured investments
-                reinvested via "Renew Investment", not withdrawn) are matched against these tiers, capped at the
-                highest tier reached.
+                Monthly, rank-gated by team depth — each rank's "Retention Bonus Levels" (set on the Ranks page)
+                unlocks how many levels deep count. Every month, that team's renewal units (matured investments
+                reinvested via "Renew Investment") for the month just closed are matched against these tiers and
+                the full matching amount is paid — resets every month, no lifetime memory.
               </p>
             </div>
           </div>
@@ -582,7 +583,7 @@ export default function Bonuses() {
         {retentionAwardsLoading ? (
           <PageLoader />
         ) : !retentionAwards || retentionAwards.items.length === 0 ? (
-          <EmptyState title="No awards paid out yet" description="Retention Bonus credits will show up here as direct teams renew." />
+          <EmptyState title="No awards paid out yet" description="Retention Bonus credits will show up here after the monthly evaluation runs." />
         ) : (
           <>
             <div className="overflow-x-auto">

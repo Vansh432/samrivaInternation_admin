@@ -232,6 +232,7 @@ export type RankSlab = {
   requiredDirectRank: Rank;
   teamBusinessUnitMin: number;
   incomePercent: number;
+  retentionLevelsUnlocked: number;
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;

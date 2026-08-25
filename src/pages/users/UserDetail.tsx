@@ -33,6 +33,9 @@ export default function UserDetail() {
   const [nextStatus, setNextStatus] = useState("");
   const [savingRole, setSavingRole] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -79,6 +82,29 @@ export default function UserDetail() {
       toast.show(e?.response?.data?.message || "Failed to update status", "error");
     } finally {
       setSavingStatus(false);
+    }
+  };
+
+  const savePassword = async () => {
+    if (!user) return;
+    if (newPassword.length < 6) {
+      toast.show("Password must be at least 6 characters", "error");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.show("Passwords do not match", "error");
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await api.patch(`/admin/users/${user.id}/password`, { newPassword });
+      toast.show("Password changed", "success");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (e: any) {
+      toast.show(e?.response?.data?.message || "Failed to change password", "error");
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -206,6 +232,41 @@ export default function UserDetail() {
             </Button>
             {currentAdmin?.role !== "super_admin" && (
               <p className="mt-2 text-xs text-slate-400">Only Super Admin can change roles.</p>
+            )}
+          </Card>
+
+          <Card>
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">Password (Super Admin only)</p>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              disabled={currentAdmin?.role !== "super_admin"}
+              placeholder="New password"
+              autoComplete="new-password"
+              className="mb-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald disabled:bg-slate-50"
+            />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={currentAdmin?.role !== "super_admin"}
+              placeholder="Confirm new password"
+              autoComplete="new-password"
+              className="mb-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald disabled:bg-slate-50"
+            />
+            <Button
+              onClick={savePassword}
+              disabled={currentAdmin?.role !== "super_admin" || savingPassword || !newPassword || !confirmPassword}
+              variant="secondary"
+              className="w-full"
+            >
+              {savingPassword ? "Saving..." : "Change Password"}
+            </Button>
+            {currentAdmin?.role !== "super_admin" ? (
+              <p className="mt-2 text-xs text-slate-400">Only Super Admin can change a user's password.</p>
+            ) : (
+              <p className="mt-2 text-xs text-slate-400">This immediately signs the user out everywhere.</p>
             )}
           </Card>
         </div>
