@@ -152,6 +152,12 @@ export default function TransferRequests() {
                     </p>
                   </div>
                   <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Admin Charge</p>
+                    <p className="mt-0.5 text-sm font-medium text-red-600">
+                      -{formatINR(r.adminChargeAmount)} ({r.adminChargePercent}%)
+                    </p>
+                  </div>
+                  <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Net (to Main)</p>
                     <p className="mt-0.5 text-sm font-bold text-emerald">{formatINR(r.netAmount)}</p>
                   </div>

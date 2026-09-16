@@ -181,6 +181,8 @@ export type WalletTransactionAdmin = {
   walletType: WalletType;
   type: WalletTxnType;
   amount: number;
+  adminChargePercent?: number;
+  adminChargeAmount?: number;
   balanceAfter?: number;
   status?: WalletTxnStatus;
   source: string;
@@ -191,6 +193,12 @@ export type WalletTransactionAdmin = {
 export type TdsConfig = {
   mode: "fixed" | "percentage";
   value: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type AdminChargeConfig = {
+  percentage: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -206,6 +214,8 @@ export type WalletTransferRequestAdmin = {
   tdsMode: "fixed" | "percentage";
   tdsValue: number;
   tdsAmount: number;
+  adminChargePercent: number;
+  adminChargeAmount: number;
   netAmount: number;
   status: TransferRequestStatus;
   reviewedBy?: string;

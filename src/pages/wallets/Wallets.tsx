@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { PageLoader } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { Paginated, WalletTransactionAdmin, CommissionSettlementConfig, TdsConfig } from "@/lib/types";
+import type { Paginated, WalletTransactionAdmin, CommissionSettlementConfig, TdsConfig, AdminChargeConfig } from "@/lib/types";
 
 const WALLET_TYPES = ["main", "reward", "bonus", "commission"];
 const PERIOD_LABELS = ["1st period", "2nd period", "3rd period", "4th period"];
@@ -34,6 +34,9 @@ export default function Wallets() {
   const [tdsLoading, setTdsLoading] = useState(true);
   const [tdsForm, setTdsForm] = useState<{ mode: "fixed" | "percentage"; value: string }>({ mode: "percentage", value: "5" });
   const [tdsSaving, setTdsSaving] = useState(false);
+  const [adminChargeLoading, setAdminChargeLoading] = useState(true);
+  const [adminChargePercentage, setAdminChargePercentage] = useState("0");
+  const [adminChargeSaving, setAdminChargeSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -92,9 +95,23 @@ export default function Wallets() {
     }
   };
 
+  const loadAdminCharge = async () => {
+    setAdminChargeLoading(true);
+    try {
+      const res = await api.get("/wallet/admin-charge-config");
+      const cfg: AdminChargeConfig = res.data.data.config;
+      setAdminChargePercentage(String(cfg.percentage));
+    } catch (e: any) {
+      toast.show(e?.response?.data?.message || "Failed to load admin charge", "error");
+    } finally {
+      setAdminChargeLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadConfig();
     loadTds();
+    loadAdminCharge();
   }, []);
 
   useEffect(() => {
@@ -158,6 +175,26 @@ export default function Wallets() {
       toast.show(e?.response?.data?.message || "Could not save TDS config", "error");
     } finally {
       setTdsSaving(false);
+    }
+  };
+
+  const adminChargeValue = Number(adminChargePercentage);
+  const adminChargeValid =
+    adminChargePercentage.trim() !== "" && Number.isFinite(adminChargeValue) && adminChargeValue >= 0 && adminChargeValue <= 100;
+
+  const saveAdminCharge = async () => {
+    if (!adminChargeValid) {
+      toast.show("Enter an admin charge between 0% and 100%", "error");
+      return;
+    }
+    setAdminChargeSaving(true);
+    try {
+      await api.patch("/wallet/admin-charge-config", { percentage: adminChargeValue });
+      toast.show("Admin charge updated", "success");
+    } catch (e: any) {
+      toast.show(e?.response?.data?.message || "Could not save admin charge", "error");
+    } finally {
+      setAdminChargeSaving(false);
     }
   };
 
@@ -242,6 +279,34 @@ export default function Wallets() {
               </Button>
             </div>
           </>
+        )}
+      </Card>
+
+      <Card className="mb-6">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+            <Percent size={18} />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800">Admin Charge on Wallet Transfers</p>
+            <p className="text-sm text-slate-500">A percentage deducted from Bonus, Reward, and Commission transfers into Main Wallet.</p>
+          </div>
+        </div>
+        {adminChargeLoading ? <PageLoader /> : (
+          <div className="flex flex-wrap items-end gap-4">
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">Charge (%)</label>
+              <input
+                value={adminChargePercentage}
+                onChange={(e) => setAdminChargePercentage(e.target.value.replace(/[^0-9.]/g, ""))}
+                placeholder="e.g. 2"
+                className={`w-32 rounded-lg border px-3 py-2 text-sm outline-none focus:border-emerald ${!adminChargeValid ? "border-red-400" : "border-slate-300"}`}
+              />
+            </div>
+            <Button onClick={saveAdminCharge} disabled={adminChargeSaving || !adminChargeValid}>
+              {adminChargeSaving ? "Saving…" : "Save"}
+            </Button>
+          </div>
         )}
       </Card>
 
@@ -379,6 +444,7 @@ export default function Wallets() {
                 <th className="px-4 py-3">Type</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Amount</th>
+                <th className="px-4 py-3">Admin Charge</th>
                 <th className="px-4 py-3">Balance After</th>
                 <th className="px-4 py-3">Description</th>
                 <th className="px-4 py-3">Date</th>
@@ -403,6 +469,9 @@ export default function Wallets() {
                   <td className={`px-4 py-3 font-bold ${t.type === "credit" ? "text-emerald" : "text-red-600"}`}>
                     {t.type === "credit" ? "+" : "-"}
                     {formatINR(t.amount)}
+                  </td>
+                  <td className="px-4 py-3 text-red-600">
+                    {t.adminChargeAmount ? `-${formatINR(t.adminChargeAmount)} (${t.adminChargePercent ?? 0}%)` : "—"}
                   </td>
                   <td className="px-4 py-3 text-slate-600">{t.balanceAfter != null ? formatINR(t.balanceAfter) : "—"}</td>
                   <td className="px-4 py-3 text-slate-500">{t.description || t.source}</td>
