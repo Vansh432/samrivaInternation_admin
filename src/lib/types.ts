@@ -193,6 +193,8 @@ export type WalletTransactionAdmin = {
 export type TdsConfig = {
   mode: "fixed" | "percentage";
   value: number;
+  panRate: number;
+  noPanRate: number;
   createdAt?: string;
   updatedAt?: string;
 };

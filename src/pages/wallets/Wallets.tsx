@@ -32,7 +32,7 @@ export default function Wallets() {
   const [configSaving, setConfigSaving] = useState(false);
 
   const [tdsLoading, setTdsLoading] = useState(true);
-  const [tdsForm, setTdsForm] = useState<{ mode: "fixed" | "percentage"; value: string }>({ mode: "percentage", value: "5" });
+  const [tdsForm, setTdsForm] = useState({ panRate: "10", noPanRate: "20" });
   const [tdsSaving, setTdsSaving] = useState(false);
   const [adminChargeLoading, setAdminChargeLoading] = useState(true);
   const [adminChargePercentage, setAdminChargePercentage] = useState("0");
@@ -87,7 +87,7 @@ export default function Wallets() {
     try {
       const res = await api.get("/wallet/tds-config");
       const cfg: TdsConfig = res.data.data.config;
-      setTdsForm({ mode: cfg.mode, value: String(cfg.value) });
+      setTdsForm({ panRate: String(cfg.panRate), noPanRate: String(cfg.noPanRate) });
     } catch (e: any) {
       toast.show(e?.response?.data?.message || "Failed to load TDS config", "error");
     } finally {
@@ -156,11 +156,11 @@ export default function Wallets() {
     }
   };
 
-  const tdsValueNum = Number(tdsForm.value);
-  const tdsValueValid =
-    tdsForm.value.trim() !== "" &&
-    tdsValueNum >= 0 &&
-    (tdsForm.mode === "fixed" || tdsValueNum <= 100);
+  const panRate = Number(tdsForm.panRate);
+  const noPanRate = Number(tdsForm.noPanRate);
+  const tdsValueValid = [tdsForm.panRate, tdsForm.noPanRate].every(
+    (value) => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 100
+  );
 
   const saveTds = async () => {
     if (!tdsValueValid) {
@@ -169,7 +169,7 @@ export default function Wallets() {
     }
     setTdsSaving(true);
     try {
-      await api.patch("/wallet/tds-config", { mode: tdsForm.mode, value: tdsValueNum });
+      await api.patch("/wallet/tds-config", { panRate, noPanRate });
       toast.show("TDS config updated", "success");
     } catch (e: any) {
       toast.show(e?.response?.data?.message || "Could not save TDS config", "error");
@@ -316,10 +316,10 @@ export default function Wallets() {
             <Percent size={18} />
           </div>
           <div>
-            <p className="font-bold text-slate-800">TDS on Wallet Transfers</p>
+            <p className="font-bold text-slate-800">TDS on Investment Returns</p>
             <p className="text-sm text-slate-500">
-              Deducted when an admin approves a user's request to transfer Bonus/Reward/Commission balance into
-              Main Wallet. Locked in per-request at the moment it's submitted.
+              Deducted from every monthly income and maturity return. Principal is not reduced. PAN holders use the
+              PAN rate; investors without PAN details use the no-PAN rate.
             </p>
           </div>
         </div>
@@ -329,24 +329,22 @@ export default function Wallets() {
         ) : (
           <div className="flex flex-wrap items-end gap-4">
             <div>
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">Mode</label>
-              <select
-                value={tdsForm.mode}
-                onChange={(e) => setTdsForm((f) => ({ ...f, mode: e.target.value as "fixed" | "percentage" }))}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald"
-              >
-                <option value="percentage">Percentage</option>
-                <option value="fixed">Fixed Amount</option>
-              </select>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">PAN rate (%)</label>
+              <input
+                value={tdsForm.panRate}
+                onChange={(e) => setTdsForm((f) => ({ ...f, panRate: e.target.value.replace(/[^0-9.]/g, "") }))}
+                placeholder="e.g. 10"
+                className={`w-32 rounded-lg border px-3 py-2 text-sm outline-none focus:border-emerald ${
+                  !tdsValueValid ? "border-red-400" : "border-slate-300"
+                }`}
+              />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">
-                {tdsForm.mode === "percentage" ? "Percent (%)" : "Amount (₹)"}
-              </label>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">No PAN rate (%)</label>
               <input
-                value={tdsForm.value}
-                onChange={(e) => setTdsForm((f) => ({ ...f, value: e.target.value.replace(/[^0-9.]/g, "") }))}
-                placeholder={tdsForm.mode === "percentage" ? "e.g. 5" : "e.g. 100"}
+                value={tdsForm.noPanRate}
+                onChange={(e) => setTdsForm((f) => ({ ...f, noPanRate: e.target.value.replace(/[^0-9.]/g, "") }))}
+                placeholder="e.g. 20"
                 className={`w-32 rounded-lg border px-3 py-2 text-sm outline-none focus:border-emerald ${
                   !tdsValueValid ? "border-red-400" : "border-slate-300"
                 }`}
